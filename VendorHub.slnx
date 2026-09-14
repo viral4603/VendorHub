@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VendorHub.API/VendorHub.API.csproj" />
+    <Project Path="src/VendorHub.AppService/VendorHub.AppService.csproj" />
+    <Project Path="src/VendorHub.Contracts/VendorHub.Contracts.csproj" />
+    <Project Path="src/VendorHub.Domain/VendorHub.Domain.csproj" />
+    <Project Path="src/VendorHub.Infrastructure/VendorHub.Infrastructure.csproj" />
+  </Folder>
+</Solution>
