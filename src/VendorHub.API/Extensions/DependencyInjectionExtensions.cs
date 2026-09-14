@@ -9,10 +9,21 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IVendorRepository, VendorRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+
+        // Security
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        // Services
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IVendorService, VendorService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductService, ProductService>();
 
         return services;
     }
