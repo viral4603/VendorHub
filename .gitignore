@@ -1,0 +1,100 @@
+## .NET / Visual Studio .gitignore
+
+# Build results
+bin/
+obj/
+out/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# EF Core
+*.mdf
+*.ldf
+*.ndf
+
+# Rider/VS local settings
+*.DotSettings.user
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+wwwroot/lib/
+
+# Secrets (never commit real secrets)
+secrets.json
+*.pfx
+*.key
+
+# Logs
+*.log
+logs/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish output
+[Pp]ublish/
+*.Publish.xml
+*.pubxml
+*.pubxml.user
+*.azurePubxml
+PublishScripts/
+
+# Windows/OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Rider/ReSharper
+_ReSharper*/
+*.ReSharper
+*.DotSettings
+
+# Backup files
+*.bak
+*.tmp
+*~
+
+# Database local files (LocalDB)
+*.mdf
+*.sdf
+
+# EF Core Migrations (KEEP these — do not ignore)
+# !**/Migrations/*.cs
+
+# User-specific project files
+*.csproj.user
+*.vbproj.user
+
+# Environment files
+.env
+.env.local
