@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VendorHub.Domain\VendorHub.Domain.csproj" />
+    <ProjectReference Include="..\VendorHub.AppService\VendorHub.AppService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
-using VendorHub.Infrastructure;
+using VendorHub.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,10 +17,11 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Multi-vendor e-commerce API built with ASP.NET Core, EF Core (Code-First)"
     });
 });
+builder.Services.AddApplicationServices();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Database connection
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDatabaseServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -37,7 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
