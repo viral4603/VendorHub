@@ -1,5 +1,6 @@
 using VendorHub.AppService.Interfaces;
 using VendorHub.Contracts.Catalog;
+using VendorHub.Domain.Constants;
 using VendorHub.Domain.Entities;
 using VendorHub.Domain.Enums;
 using VendorEntity = VendorHub.Domain.Entities.Vendor;
@@ -59,13 +60,12 @@ public class ProductService : IProductService
 
         ValidateProductInput(request.Name, request.Price, request.Stock);
 
-        if (!await _categoryRepository.ExistsAsync(request.CategoryId))
-            throw new KeyNotFoundException("Category not found.");
+        var categoryId = await ResolveCategoryIdAsync(request.CategoryId);
 
         var product = new Product
         {
             VendorId = vendor.Id,
-            CategoryId = request.CategoryId,
+            CategoryId = categoryId,
             Name = request.Name.Trim(),
             Description = request.Description?.Trim() ?? string.Empty,
             Price = request.Price,
@@ -88,10 +88,9 @@ public class ProductService : IProductService
 
         ValidateProductInput(request.Name, request.Price, request.Stock);
 
-        if (!await _categoryRepository.ExistsAsync(request.CategoryId))
-            throw new KeyNotFoundException("Category not found.");
-
-        product.CategoryId = request.CategoryId;
+        // An omitted category on update means "leave it where it is" — only a
+        // creation falls back to the default.
+        product.CategoryId = await ResolveCategoryIdAsync(request.CategoryId, product.CategoryId);
         product.Name = request.Name.Trim();
         product.Description = request.Description?.Trim() ?? string.Empty;
         product.Price = request.Price;
@@ -117,6 +116,35 @@ public class ProductService : IProductService
         product.IsActive = false;
 
         await _productRepository.SaveChangesAsync();
+    }
+
+    // Resolves the category a product should land in. A supplied id must exist; an
+    // omitted one falls back to `fallbackCategoryId` when given (update), otherwise
+    // to the default category (create).
+    private async Task<int> ResolveCategoryIdAsync(int? requestedCategoryId, int? fallbackCategoryId = null)
+    {
+        // Treat 0 as "not supplied": it is what a client sends when it leaves the
+        // field out of a non-nullable model, and it is never a valid identity key.
+        if (requestedCategoryId is > 0)
+        {
+            if (!await _categoryRepository.ExistsAsync(requestedCategoryId.Value))
+                throw new KeyNotFoundException($"Category {requestedCategoryId} not found.");
+
+            return requestedCategoryId.Value;
+        }
+
+        if (fallbackCategoryId.HasValue)
+            return fallbackCategoryId.Value;
+
+        // Seeded, so it is always present; checked anyway to fail with a readable
+        // message rather than a foreign-key violation if someone removed the row.
+        if (!await _categoryRepository.ExistsAsync(CategoryDefaults.OthersId))
+        {
+            throw new InvalidOperationException(
+                $"The default '{CategoryDefaults.OthersName}' category is missing, so a product cannot be created without a category.");
+        }
+
+        return CategoryDefaults.OthersId;
     }
 
     private async Task<VendorEntity> GetVendorForUserAsync(int userId) =>

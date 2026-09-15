@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VendorHub.Domain.Constants;
 using VendorHub.Domain.Entities;
 using VendorHub.Domain.Enums;
 using OrderEntity = VendorHub.Domain.Entities.Order;
@@ -149,6 +150,10 @@ public class AppDbContext : DbContext
                   .HasForeignKey(i => i.ProductId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<Category>().HasData(
+            new Category { Id = CategoryDefaults.OthersId, Name = CategoryDefaults.OthersName, ParentCategoryId = null }
+        );
 
         modelBuilder.Entity<Role>().HasData(
             new Role { Id = (int)RoleType.Admin, Name = RoleType.Admin.ToString() },
