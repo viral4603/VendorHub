@@ -1,4 +1,3 @@
-using Microsoft.OpenApi;
 using VendorHub.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,16 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "VendorHub API",
-        Version = "v1",
-        Description = "Multi-vendor e-commerce API built with ASP.NET Core, EF Core (Code-First)"
-    });
-});
+builder.Services.AddSwaggerServices();
 builder.Services.AddApplicationServices();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
