@@ -68,33 +68,14 @@ public class VendorController : ControllerBase
         return Ok(ApiResponse<List<VendorResponseDto>>.SuccessResponse(vendors, "Vendors retrieved successfully"));
     }
 
-    [HttpPut("{id:int}/approve")]
+    [HttpPut("{id:int}/review")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Approve(int id)
+    public async Task<IActionResult> Review(int id, ReviewVendorRequestDto request)
     {
         try
         {
-            var vendor = await _vendorService.ApproveAsync(id);
-            return Ok(ApiResponse<VendorResponseDto>.SuccessResponse(vendor, "Vendor approved successfully"));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse<VendorResponseDto>.FailureResponse(ex.Message));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ApiResponse<VendorResponseDto>.FailureResponse(ex.Message));
-        }
-    }
-
-    [HttpPut("{id:int}/reject")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Reject(int id)
-    {
-        try
-        {
-            var vendor = await _vendorService.RejectAsync(id);
-            return Ok(ApiResponse<VendorResponseDto>.SuccessResponse(vendor, "Vendor rejected successfully"));
+            var vendor = await _vendorService.ReviewAsync(id, request);
+            return Ok(ApiResponse<VendorResponseDto>.SuccessResponse(vendor, $"Vendor {vendor.Status.ToLower()} successfully"));
         }
         catch (KeyNotFoundException ex)
         {

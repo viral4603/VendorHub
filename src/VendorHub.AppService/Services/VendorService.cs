@@ -43,11 +43,23 @@ public class VendorService : IVendorService
         return MapToDto(vendor);
     }
 
-    public async Task<VendorResponseDto> ApproveAsync(int vendorId) =>
-        await ReviewAsync(vendorId, VendorStatus.Approved);
+    public async Task<VendorResponseDto> ReviewAsync(int vendorId, ReviewVendorRequestDto request)
+    {
+        var decision = ParseDecision(request.Status);
 
-    public async Task<VendorResponseDto> RejectAsync(int vendorId) =>
-        await ReviewAsync(vendorId, VendorStatus.Rejected);
+        var vendor = await _vendorRepository.GetByIdAsync(vendorId)
+            ?? throw new KeyNotFoundException("Vendor not found.");
+
+        if (vendor.Status != VendorStatus.Pending)
+            throw new InvalidOperationException($"This vendor application has already been {vendor.Status.ToString().ToLower()}.");
+
+        vendor.Status = decision;
+        vendor.ReviewedAt = DateTime.UtcNow;
+
+        await _vendorRepository.SaveChangesAsync();
+
+        return MapToDto(vendor);
+    }
 
     public async Task<VendorResponseDto> GetMyStatusAsync(int userId)
     {
@@ -63,20 +75,20 @@ public class VendorService : IVendorService
         return vendors.Select(MapToDto).ToList();
     }
 
-    private async Task<VendorResponseDto> ReviewAsync(int vendorId, VendorStatus status)
+    // Only Approved and Rejected are reachable: Pending is the state an application
+    // starts in, not a decision an admin can hand down, so parsing it back in would
+    // return a reviewed vendor to the queue.
+    private static VendorStatus ParseDecision(string status)
     {
-        var vendor = await _vendorRepository.GetByIdAsync(vendorId)
-            ?? throw new KeyNotFoundException("Vendor not found.");
+        var allowed = new[] { VendorStatus.Approved, VendorStatus.Rejected };
 
-        if (vendor.Status != VendorStatus.Pending)
-            throw new InvalidOperationException($"This vendor application has already been {vendor.Status.ToString().ToLower()}.");
+        if (!Enum.TryParse<VendorStatus>(status, ignoreCase: true, out var parsed) || !allowed.Contains(parsed))
+        {
+            throw new InvalidOperationException(
+                $"'{status}' is not a valid review decision. Allowed values: {string.Join(", ", allowed)}.");
+        }
 
-        vendor.Status = status;
-        vendor.ReviewedAt = DateTime.UtcNow;
-
-        await _vendorRepository.SaveChangesAsync();
-
-        return MapToDto(vendor);
+        return parsed;
     }
 
     private static VendorResponseDto MapToDto(VendorEntity vendor) => new()
