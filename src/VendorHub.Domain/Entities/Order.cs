@@ -17,6 +17,11 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal TotalAmount { get; set; }
 
+    // Null until the customer pays. One payment can cover several orders, because a
+    // single checkout is split per vendor but paid for in one go.
+    public int? PaymentId { get; set; }
+    public Payment? Payment { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();

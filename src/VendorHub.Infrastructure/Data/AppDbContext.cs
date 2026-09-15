@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using VendorHub.Domain.Entities;
 using VendorHub.Domain.Enums;
 using OrderEntity = VendorHub.Domain.Entities.Order;
+using PaymentEntity = VendorHub.Domain.Entities.Payment;
 using VendorEntity = VendorHub.Domain.Entities.Vendor;
 
 namespace VendorHub.Infrastructure.Data;
@@ -19,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<OrderEntity> Orders => Set<OrderEntity>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<PaymentEntity> Payments => Set<PaymentEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -102,6 +104,29 @@ public class AppDbContext : DbContext
             entity.HasOne(o => o.Vendor)
                   .WithMany()
                   .HasForeignKey(o => o.VendorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Nullable FK: an order is unpaid until a payment is linked, and one
+            // payment covers every order from the same checkout.
+            entity.HasOne(o => o.Payment)
+                  .WithMany(p => p.Orders)
+                  .HasForeignKey(o => o.PaymentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PaymentEntity>(entity =>
+        {
+            entity.Property(p => p.Amount).HasPrecision(18, 2);
+            entity.Property(p => p.Method).HasConversion<int>();
+            entity.Property(p => p.Status).HasConversion<int>();
+            entity.Property(p => p.TransactionReference).IsRequired().HasMaxLength(100);
+
+            entity.HasIndex(p => p.CustomerUserId);
+            entity.HasIndex(p => p.TransactionReference).IsUnique();
+
+            entity.HasOne(p => p.CustomerUser)
+                  .WithMany()
+                  .HasForeignKey(p => p.CustomerUserId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
