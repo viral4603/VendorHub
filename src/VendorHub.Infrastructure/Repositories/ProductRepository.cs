@@ -42,6 +42,17 @@ public class ProductRepository : IProductRepository
             .Include(p => p.Category)
             .FirstOrDefaultAsync(p => p.Id == id);
 
+    public async Task<List<Product>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        var idList = ids.Distinct().ToList();
+
+        return await _context.Products
+            .Include(p => p.Vendor)
+            .Include(p => p.Category)
+            .Where(p => idList.Contains(p.Id))
+            .ToListAsync();
+    }
+
     public async Task<List<Product>> GetByVendorIdAsync(int vendorId) =>
         await _context.Products
             .Include(p => p.Vendor)

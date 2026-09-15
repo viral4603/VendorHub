@@ -27,6 +27,14 @@ public class AuthService : IAuthService
         if (existingUser != null)
             throw new InvalidOperationException("A user with this email already exists.");
 
+        // Caught here rather than as a foreign-key violation on save, which would
+        // surface as an unhandled 500 instead of a readable message.
+        if (!Enum.IsDefined((RoleType)request.RoleId))
+        {
+            var allowed = Enum.GetValues<RoleType>().Select(r => $"{(int)r} ({r})");
+            throw new InvalidOperationException($"'{request.RoleId}' is not a valid role id. Allowed values: {string.Join(", ", allowed)}.");
+        }
+
         var (hash, salt) = _passwordHasher.HashPassword(request.Password);
 
         var user = new User
@@ -41,14 +49,19 @@ public class AuthService : IAuthService
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        var (token, expiresAt) = _jwtTokenGenerator.GenerateToken(user);
+        // Re-read so the Role navigation is loaded — the token includes the role name,
+        // and the freshly constructed entity above only carries RoleId.
+        var createdUser = await _userRepository.GetByIdAsync(user.Id)
+            ?? throw new InvalidOperationException("The user was created but could not be read back.");
+
+        var (token, expiresAt) = _jwtTokenGenerator.GenerateToken(createdUser);
 
         return new AuthResponseDto
         {
-            UserId = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Role = ((RoleType)user.RoleId).ToString(),
+            UserId = createdUser.Id,
+            Name = createdUser.Name,
+            Email = createdUser.Email,
+            Role = ((RoleType)createdUser.RoleId).ToString(),
             Token = token,
             ExpiresAt = expiresAt
         };

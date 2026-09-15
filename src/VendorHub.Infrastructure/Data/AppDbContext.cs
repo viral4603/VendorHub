@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VendorHub.Domain.Entities;
 using VendorHub.Domain.Enums;
+using OrderEntity = VendorHub.Domain.Entities.Order;
 using VendorEntity = VendorHub.Domain.Entities.Vendor;
 
 namespace VendorHub.Infrastructure.Data;
@@ -16,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<VendorEntity> Vendors => Set<VendorEntity>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<OrderEntity> Orders => Set<OrderEntity>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,6 +83,45 @@ public class AppDbContext : DbContext
             entity.HasOne(p => p.Category)
                   .WithMany(c => c.Products)
                   .HasForeignKey(p => p.CategoryId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OrderEntity>(entity =>
+        {
+            entity.Property(o => o.Status).HasConversion<int>();
+            entity.Property(o => o.TotalAmount).HasPrecision(18, 2);
+
+            entity.HasIndex(o => o.CustomerUserId);
+            entity.HasIndex(o => o.VendorId);
+
+            entity.HasOne(o => o.CustomerUser)
+                  .WithMany()
+                  .HasForeignKey(o => o.CustomerUserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(o => o.Vendor)
+                  .WithMany()
+                  .HasForeignKey(o => o.VendorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.Property(i => i.ProductName).IsRequired().HasMaxLength(200);
+            entity.Property(i => i.UnitPrice).HasPrecision(18, 2);
+            entity.Property(i => i.LineTotal).HasPrecision(18, 2);
+
+            // Items have no life of their own — deleting an order deletes its lines.
+            entity.HasOne(i => i.Order)
+                  .WithMany(o => o.Items)
+                  .HasForeignKey(i => i.OrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Restrict on Product: the name and price are already snapshotted on the
+            // item, and products are soft-deleted rather than removed.
+            entity.HasOne(i => i.Product)
+                  .WithMany()
+                  .HasForeignKey(i => i.ProductId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
