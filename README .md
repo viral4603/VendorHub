@@ -56,7 +56,7 @@ dotnet --version
 ```bash
 cd VendorHub
 ```
-Open `VendorHub.sln` in Visual Studio, or work from the terminal with the `dotnet` CLI. Project folders live under `src/`.
+Open `VendorHub.slnx` in Visual Studio, or work from the terminal with the `dotnet` CLI. Project folders live under `src/`.
 
 ### 2. Install EF Core CLI Tools (one-time, machine-wide)
 ```bash
@@ -109,7 +109,7 @@ Apply the migration to create the actual database:
 dotnet ef database update --project src/VendorHub.Infrastructure --startup-project src/VendorHub.API
 ```
 
-This creates `VendorHubDb` in your SQL Server instance with tables for the modules included above (Users, Roles, Vendors, Categories, Products, Orders, OrderItems, Payments).
+This creates `VendorHubDb` in your SQL Server instance with tables for the modules included above (Users, Roles, Vendors, Categories, Products, Orders, OrderItems, Payments), seeded with the three roles and the default **Others** category.
 
 > **Note:** Any time you change an entity, repeat both commands with a new migration name, e.g. `AddProductDiscountField`, to keep the schema in sync.
 
@@ -128,15 +128,15 @@ Once running, open:
 https://localhost:5001/swagger/index.html
 ```
 
-Test endpoints directly from here — for authenticated ones, click **Authorize** and paste `Bearer <your-jwt-token>` after logging in.
+Test endpoints directly from here. For authenticated ones, log in via `POST /api/auth/login`, copy `data.token` from the response, click **Authorize** (top right) and paste the token on its own — **without** the `Bearer ` prefix, which Swagger adds for you. Every endpoint then sends the header until you log out.
 
 ### 8. First-Time Use
 
 1. `POST /api/auth/register` with `roleId: 1` → creates an Admin account.
 2. `POST /api/auth/register` with `roleId: 3` → creates a Customer account.
 3. As Customer, `POST /api/vendor/apply` → submits a vendor application (Pending).
-4. As Admin, approve it via `PUT /api/vendor/{id}/approve`.
-5. The approved Vendor adds products under a category (Admin creates categories first).
+4. As Admin, approve it via `PUT /api/vendor/{id}/review` with body `{ "status": "Approved" }` — send `"Rejected"` to turn it down. Only a Pending application can be reviewed.
+5. The approved Vendor adds products. `categoryId` is optional: omit it and the product is filed under the seeded **Others** category (id `1000`). Admins can create richer categories at any time.
 6. A Customer browses products, checks out, and pays — orders split automatically per vendor.
 
 ---
