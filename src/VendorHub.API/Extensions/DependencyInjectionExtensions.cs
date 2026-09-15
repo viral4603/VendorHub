@@ -14,6 +14,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IVendorRepository, VendorRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
 
         // Security
         services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -24,6 +25,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IVendorService, VendorService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IOrderService, OrderService>();
 
         return services;
     }
