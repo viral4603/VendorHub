@@ -5,6 +5,7 @@ namespace VendorHub.AppService.Interfaces;
 public interface IOrderRepository
 {
     Task<Order?> GetByIdAsync(int id);
+    Task<List<Order>> GetByIdsAsync(IEnumerable<int> ids);
     Task<List<Order>> GetByCustomerUserIdAsync(int customerUserId);
     Task<List<Order>> GetByVendorIdAsync(int vendorId);
     Task AddRangeAsync(IEnumerable<Order> orders);

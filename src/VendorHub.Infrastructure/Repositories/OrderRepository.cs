@@ -20,7 +20,20 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.Vendor)
             .Include(o => o.CustomerUser)
             .Include(o => o.Items)
+            .Include(o => o.Payment)
             .FirstOrDefaultAsync(o => o.Id == id);
+
+    public async Task<List<OrderEntity>> GetByIdsAsync(IEnumerable<int> ids)
+    {
+        var idList = ids.Distinct().ToList();
+
+        return await _context.Orders
+            .Include(o => o.Vendor)
+            .Include(o => o.CustomerUser)
+            .Include(o => o.Payment)
+            .Where(o => idList.Contains(o.Id))
+            .ToListAsync();
+    }
 
     public async Task<List<OrderEntity>> GetByCustomerUserIdAsync(int customerUserId) =>
         await _context.Orders
